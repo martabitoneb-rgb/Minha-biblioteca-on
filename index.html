@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="pt-MZ">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minha Biblioteca On - Moçambique Digital</title>
+    
+    <!-- Estilos e Fontes -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Lora:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: black; }
+        .font-serif { font-family: 'Lora', serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        /* Animações */
+        .page-transition { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .loader { border-top-color: #0d9488; animation: spinner 1.5s linear infinite; }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .btn-primary { @apply bg-teal-600 text-white font-black py-4 px-8 rounded-2xl hover:bg-teal-700 transition-all shadow-lg active:scale-95 uppercase tracking-widest text-sm flex items-center justify-center gap-2; }
+        .input-field { @apply w-full px-6 py-4 rounded-2xl border-2 border-gray-100 bg-gray-50 text-black font-bold outline-none focus:border-teal-600 focus:bg-white transition-all; }
+    </style>
+
+    <script type="importmap">
+{
+  "imports": {
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@^2.39.0",
+    "@google/genai": "https://esm.sh/@google/genai@^1.35.0",
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.12.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- BARRA DE NAVEGAÇÃO -->
+    <nav class="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20">
+                <div class="flex items-center">
+                    <a href="#/" class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-teal-600 rounded-2xl flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-teal-500/20">M</div>
+                        <div>
+                            <span class="font-black text-xl text-black tracking-tight block leading-none">Minha Biblioteca On</span>
+                            <span class="text-[10px] text-teal-600 font-black uppercase tracking-widest">Moçambique Digital</span>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="hidden md:flex items-center space-x-4" id="nav-links">
+                    <!-- Conteúdo dinâmico JS -->
+                </div>
+
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="w-10 h-10 flex items-center justify-center rounded-xl text-black bg-gray-100 border border-gray-200">
+                        <i class="fa-solid fa-bars-staggered"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 px-4 py-6 space-y-4">
+            <!-- Conteúdo dinâmico JS -->
+        </div>
+    </nav>
+
+    <!-- ÁREA DE CONTEÚDO (SPA) -->
+    <main id="app-root" class="flex-grow"></main>
+
+    <!-- FOOTER -->
+    <footer class="bg-gray-900 text-gray-300 py-12">
+        <div class="max-w-7xl mx-auto px-4 text-center md:text-left grid grid-cols-1 md:grid-cols-3 gap-12">
+            <div>
+                <h2 class="text-white text-xl font-black mb-4 uppercase tracking-widest">Minha Biblioteca On</h2>
+                <p class="text-sm leading-relaxed">"Moçambique digital em suas mãos."<br>Democratizando o acesso à leitura em todo o território nacional.</p>
+            </div>
+            <div>
+                <h3 class="text-white font-bold mb-4 uppercase text-xs tracking-[0.2em]">Contato</h3>
+                <p class="text-sm">martabitoneb@gmail.com</p>
+                <p class="text-sm">+258 858799196</p>
+            </div>
+            <div>
+                <h3 class="text-white font-bold mb-4 uppercase text-xs tracking-[0.2em]">Social</h3>
+                <div class="flex justify-center md:justify-start gap-4">
+                    <a href="https://wa.me/258858799196" target="_blank" class="hover:text-teal-400 transition-all"><i class="fa-brands fa-whatsapp text-2xl"></i></a>
+                    <a href="#" class="hover:text-teal-400 transition-all"><i class="fa-brands fa-instagram text-2xl"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="border-t border-gray-800 mt-12 pt-8 text-center text-[10px] font-black uppercase tracking-[0.4em]">
+            © <span id="current-year"></span> Minha Biblioteca On. Maputo, Moçambique.
+        </div>
+    </footer>
+
+    <!-- MODAL DO LEITOR -->
+    <div id="reader-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center bg-black/95 backdrop-blur-xl">
+        <div class="bg-[#f2efe4] w-full max-w-7xl h-full md:h-[95vh] flex flex-col md:rounded-[3rem] overflow-hidden shadow-2xl">
+            <div class="bg-white border-b px-8 py-5 flex justify-between items-center">
+                <div id="modal-header-info" class="flex items-center gap-4"></div>
+                <button onclick="closeReader()" class="w-10 h-10 rounded-full hover:bg-gray-100 text-gray-400 hover:text-red-500 transition-all">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div id="modal-content-area" class="flex-grow relative overflow-hidden bg-[#e8e4d9]"></div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS CORE -->
+    <script type="module">
+        import { createClient } from '@supabase/supabase-js';
+        import { GoogleGenAI } from '@google/genai';
+
+        // Configurações
+        const SUPABASE_URL = 'https://mxhilwupxdwzxefntamq.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im14aGlsd3VweGR3enhlZm50YW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1NDkxMjQsImV4cCI6MjA4NDEyNTEyNH0.qHtknvb43piZgBjcX7_MFLiV8FjbnubglYv0p4P2dGc';
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        const ADMIN_PASSWORD = 'raquel24bleim26';
+        const GENRES = ['Educação', 'Romance', 'Ficção', 'História', 'Ciência', 'Biografia', 'Tecnologia'];
+
+        // Estado Global
+        let state = {
+            user: null,
+            books: [],
+            isAdminMode: false,
+            currentHash: window.location.hash || '#/'
+        };
+
+        // Inicialização
+        async function init() {
+            document.getElementById('current-year').textContent = new Date().getFullYear();
+            
+            // Sessão Inicial
+            const { data: { session } } = await supabase.auth.getSession();
+            state.user = session?.user || null;
+
+            // Ouvir mudanças de Auth
+            supabase.auth.onAuthStateChange((_event, session) => {
+                state.user = session?.user || null;
+                renderNavbar();
+                if (state.currentHash === '#/perfil' || state.currentHash === '#/login') router();
+            });
+
+            await fetchBooks();
+            window.addEventListener('hashchange', () => {
+                state.currentHash = window.location.hash || '#/';
+                router();
+            });
+
+            router();
+            renderNavbar();
+        }
+
+        async function fetchBooks() {
+            const { data, error } = await supabase.from('books').select('*').order('date_added', { ascending: false });
+            if (!error) {
+                state.books = data.map(b => ({
+                    id: b.id,
+                    title: b.title,
+                    author: b.author,
+                    description: b.description,
+                    genre: b.genre,
+                    coverUrl: b.cover_url,
+                    fileUrl: b.file_url,
+                    isFeatured: b.is_featured,
+                    dateAdded: b.date_added
+                }));
+            }
+        }
+
+        // Roteador SPA
+        function router() {
+            const root = document.getElementById('app-root');
+            root.innerHTML = '';
+            renderNavbar();
+
+            const container = document.createElement('div');
+            container.className = 'page-transition';
+
+            switch(state.currentHash) {
+                case '#/': renderHomePage(container); break;
+                case '#/catalogo': renderCatalogPage(container); break;
+                case '#/sobre': renderAboutPage(container); break;
+                case '#/login': renderLoginPage(container); break;
+                case '#/registrar': renderRegisterPage(container); break;
+                case '#/perfil': renderProfilePage(container); break;
+                case '#/admin': renderAdminPage(container); break;
+                default: renderHomePage(container);
+            }
+
+            root.appendChild(container);
+            window.scrollTo(0, 0);
+        }
+
+        function renderNavbar() {
+            const nav = document.getElementById('nav-links');
+            const mobile = document.getElementById('mobile-menu');
+            const current = state.currentHash;
+            const userLabel = state.user?.user_metadata?.username || state.user?.email?.split('@')[0] || 'Leitor';
+
+            const links = `
+                <div class="flex bg-gray-100 p-1.5 rounded-2xl border border-gray-200">
+                    <a href="#/" class="px-5 py-2.5 rounded-xl text-sm font-black ${current === '#/' ? 'bg-white text-teal-600 shadow-sm' : 'text-gray-800'}">Início</a>
+                    <a href="#/catalogo" class="px-5 py-2.5 rounded-xl text-sm font-black ${current === '#/catalogo' ? 'bg-white text-teal-600 shadow-sm' : 'text-gray-800'}">Catálogo</a>
+                    <a href="#/sobre" class="px-5 py-2.5 rounded-xl text-sm font-black ${current === '#/sobre' ? 'bg-white text-teal-600 shadow-sm' : 'text-gray-800'}">Sobre</a>
+                </div>
+                <div class="flex items-center gap-3">
+                    ${state.user ? 
+                        `<a href="#/perfil" class="bg-teal-50 text-teal-700 px-5 py-3 rounded-xl text-xs font-black border border-teal-200 uppercase tracking-widest flex items-center gap-2"><i class="fa-solid fa-circle-user"></i><span>${userLabel}</span></a>` :
+                        `<a href="#/login" class="text-black px-5 py-3 rounded-xl text-xs font-black border border-gray-200 uppercase tracking-widest hover:bg-gray-100">Entrar</a>`
+                    }
+                    <a href="#/admin" class="bg-black text-white px-6 py-3 rounded-xl text-xs font-black hover:bg-gray-800 transition-all shadow-lg flex items-center gap-2 uppercase tracking-widest">
+                        <i class="fa-solid fa-sliders"></i><span>Gestão</span>
+                    </a>
+                </div>
+            `;
+            nav.innerHTML = links;
+            mobile.innerHTML = links.replace(/flex/g, 'flex flex-col text-center').replace(/items-center/g, '');
+        }
+
+        // PÁGINAS
+        function renderHomePage(container) {
+            const featured = state.books.filter(b => b.isFeatured).slice(0, 4);
+            container.innerHTML = `
+                <section class="relative h-[600px] flex items-center justify-center text-white text-center px-4 overflow-hidden">
+                    <div class="absolute inset-0 bg-black z-0">
+                        <img src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&q=80" class="w-full h-full object-cover opacity-50">
+                    </div>
+                    <div class="relative z-10 max-w-4xl">
+                        <h1 class="text-5xl md:text-7xl font-black mb-6 tracking-tighter uppercase leading-tight">Moçambique digital em suas mãos</h1>
+                        <p class="text-xl md:text-2xl mb-10 text-gray-200 font-bold italic">Acesso gratuito a milhares de obras nacionais e educativas.</p>
+                        <a href="#/catalogo" class="inline-block bg-teal-600 px-12 py-5 rounded-full text-lg font-black hover:scale-105 transition-transform shadow-2xl shadow-teal-500/40 uppercase tracking-widest">Explorar Catálogo</a>
+                    </div>
+                </section>
+                <div class="max-w-7xl mx-auto px-4 py-24">
+                    <h2 class="text-4xl font-black mb-12 border-l-8 border-teal-600 pl-6 uppercase tracking-tight">Destaques da Semana</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                        ${featured.length > 0 ? featured.map(b => bookCardHtml(b)).join('') : '<p class="col-span-full text-center py-20 font-bold text-gray-400">Nenhum livro em destaque no momento.</p>'}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderCatalogPage(container) {
+            container.innerHTML = `
+                <div class="max-w-7xl mx-auto px-4 py-16">
+                    <h1 class="text-5xl font-black mb-12 tracking-tighter uppercase">Catálogo Completo</h1>
+                    <div class="flex flex-col md:flex-row gap-6 mb-12">
+                        <div class="flex-grow relative">
+                            <i class="fa-solid fa-magnifying-glass absolute left-6 top-1/2 -translate-y-1/2 text-gray-300"></i>
+                            <input type="text" id="catalog-search" placeholder="Pesquisar por título ou autor..." class="w-full pl-16 pr-6 py-5 rounded-2xl bg-white border-2 border-gray-100 outline-none focus:border-teal-600 font-bold transition-all shadow-sm">
+                        </div>
+                        <select id="catalog-filter" class="px-8 py-5 rounded-2xl bg-white border-2 border-gray-100 outline-none focus:border-teal-600 font-black uppercase text-xs tracking-widest shadow-sm">
+                            <option value="Todos">Todas Categorias</option>
+                            ${GENRES.map(g => `<option value="${g}">${g}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div id="catalog-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                        ${state.books.map(b => bookCardHtml(b)).join('')}
+                    </div>
+                </div>
+            `;
+            
+            const search = document.getElementById('catalog-search');
+            const filter = document.getElementById('catalog-filter');
+            const grid = document.getElementById('catalog-grid');
+
+            const applyFilter = () => {
+                const query = search.value.toLowerCase();
+                const genre = filter.value;
+                const filtered = state.books.filter(b => 
+                    (b.title.toLowerCase().includes(query) || b.author.toLowerCase().includes(query)) &&
+                    (genre === 'Todos' || b.genre === genre)
+                );
+                grid.innerHTML = filtered.map(b => bookCardHtml(b)).join('') || '<p class="col-span-full py-20 text-center font-bold text-gray-400">Nenhum livro encontrado.</p>';
+            };
+
+            search.oninput = applyFilter;
+            filter.onchange = applyFilter;
+        }
+
+        function renderAboutPage(container) {
+            container.innerHTML = `
+                <div class="max-w-4xl mx-auto px-4 py-24 text-center">
+                    <h1 class="text-6xl font-black mb-8 tracking-tighter uppercase">Nossa Missão</h1>
+                    <p class="text-3xl text-teal-600 font-black mb-12 italic">"Moçambique digital em suas mãos"</p>
+                    <div class="bg-white p-12 rounded-[3rem] shadow-2xl border-2 border-gray-50 text-left space-y-8">
+                        <p class="text-xl font-bold leading-relaxed">A Minha Biblioteca On é uma iniciativa dedicada a democratizar o acesso à informação. Através da tecnologia, eliminamos barreiras físicas e financeiras, levando livros e conhecimento a cada distrito de Moçambique.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8">
+                            <div class="text-center p-8 bg-gray-50 rounded-3xl"><div class="text-4xl font-black text-teal-600">100%</div><div class="text-[10px] font-black uppercase tracking-widest mt-2">Digital</div></div>
+                            <div class="text-center p-8 bg-gray-50 rounded-3xl"><div class="text-4xl font-black text-teal-600">Grátis</div><div class="text-[10px] font-black uppercase tracking-widest mt-2">Para Leitores</div></div>
+                            <div class="text-center p-8 bg-gray-50 rounded-3xl"><div class="text-4xl font-black text-teal-600">Nacional</div><div class="text-[10px] font-black uppercase tracking-widest mt-2">Foco Local</div></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderLoginPage(container) {
+            container.innerHTML = `
+                <div class="max-w-md mx-auto py-24 px-4">
+                    <div class="bg-white p-12 rounded-[3rem] shadow-2xl border-2 border-gray-50 text-center">
+                        <div class="w-20 h-20 bg-teal-600 text-white rounded-3xl flex items-center justify-center text-4xl font-black mx-auto mb-10 shadow-xl shadow-teal-500/30">M</div>
+                        <h1 class="text-3xl font-black mb-10 uppercase tracking-tight">Área do Leitor</h1>
+                        <form id="login-form" class="space-y-6 text-left">
+                            <div><label class="block text-xs font-black uppercase tracking-widest mb-3 ml-2">Utilizador ou E-mail</label><input type="text" id="login-id" required class="input-field" placeholder="Ex: marta_moz"></div>
+                            <div><label class="block text-xs font-black uppercase tracking-widest mb-3 ml-2">Palavra-passe</label><input type="password" id="login-pw" required class="input-field" placeholder="••••••••"></div>
+                            <button type="submit" class="w-full btn-primary mt-4">Aceder à Biblioteca</button>
+                        </form>
+                        <p class="mt-10 font-bold">Ainda não tem conta? <a href="#/registrar" class="text-teal-600 hover:underline">Registe-se aqui</a></p>
+                    </div>
+                </div>
+            `;
+            document.getElementById('login-form').onsubmit = async (e) => {
+                e.preventDefault();
+                const id = document.getElementById('login-id').value;
+                const email = id.includes('@') ? id : `${id.toLowerCase().trim()}@biblioteca.on`;
+                const pass = document.getElementById('login-pw').value;
+                const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+                if (error) alert("Erro: " + error.message);
+                else window.location.hash = '#/';
+            };
+        }
+
+        function renderRegisterPage(container) {
+            container.innerHTML = `
+                <div class="max-w-md mx-auto py-24 px-4">
+                    <div class="bg-white p-12 rounded-[3rem] shadow-2xl border-2 border-gray-50 text-center">
+                        <h1 class="text-3xl font-black mb-10 uppercase tracking-tight">Novo Registo</h1>
+                        <form id="reg-form" class="space-y-5 text-left">
+                            <div><label class="block text-xs font-black uppercase tracking-widest mb-2 ml-2">Nome de Utilizador</label><input type="text" id="reg-user" required class="input-field" placeholder="Ex: joao_moz"></div>
+                            <div><label class="block text-xs font-black uppercase tracking-widest mb-2 ml-2">Senha</label><input type="password" id="reg-p1" required class="input-field" placeholder="Mínimo 6 caracteres"></div>
+                            <div><label class="block text-xs font-black uppercase tracking-widest mb-2 ml-2">Confirmar</label><input type="password" id="reg-p2" required class="input-field" placeholder="Repita a senha"></div>
+                            <button type="submit" class="w-full btn-primary mt-4 bg-black hover:bg-gray-800">Criar Minha Conta</button>
+                        </form>
+                    </div>
+                </div>
+            `;
+            document.getElementById('reg-form').onsubmit = async (e) => {
+                e.preventDefault();
+                const u = document.getElementById('reg-user').value;
+                const p1 = document.getElementById('reg-p1').value;
+                const p2 = document.getElementById('reg-p2').value;
+                if (p1 !== p2) return alert("Senhas não coincidem");
+                const { error } = await supabase.auth.signUp({ email: `${u.toLowerCase().trim()}@biblioteca.on`, password: p1, options: { data: { username: u } } });
+                if (error) alert(error.message);
+                else { alert("Sucesso! Pode fazer login."); window.location.hash = '#/login'; }
+            };
+        }
+
+        function renderProfilePage(container) {
+            if (!state.user) return window.location.hash = '#/login';
+            const user = state.user.user_metadata?.username || state.user.email.split('@')[0];
+            container.innerHTML = `
+                <div class="max-w-4xl mx-auto py-24 px-4">
+                    <div class="bg-white rounded-[4rem] shadow-2xl border-2 border-gray-50 overflow-hidden">
+                        <div class="bg-teal-600 py-20 text-center text-white relative">
+                            <div class="w-32 h-32 bg-white rounded-full mx-auto mb-6 flex items-center justify-center text-teal-600 text-5xl font-black border-4 border-teal-500 shadow-2xl">${user[0].toUpperCase()}</div>
+                            <h1 class="text-4xl font-black uppercase tracking-widest">${user}</h1>
+                        </div>
+                        <div class="p-12 md:p-20 text-center">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 text-left">
+                                <div class="p-8 bg-gray-50 rounded-[2rem] border-2 border-gray-100">
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Identificador</p>
+                                    <p class="text-xl font-black">${state.user.email}</p>
+                                </div>
+                                <div class="p-8 bg-gray-50 rounded-[2rem] border-2 border-gray-100">
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Membro Desde</p>
+                                    <p class="text-xl font-black">${new Date(state.user.created_at).toLocaleDateString()}</p>
+                                </div>
+                            </div>
+                            <button id="logout-btn" class="w-full btn-primary bg-black hover:bg-red-600 transition-colors">Terminar Sessão</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('logout-btn').onclick = async () => { await supabase.auth.signOut(); window.location.hash = '#/'; };
+        }
+
+        function renderAdminPage(container) {
+            if (!state.isAdminMode) {
+                container.innerHTML = `
+                    <div class="max-w-md mx-auto py-24 px-4">
+                        <div class="bg-white p-12 rounded-[3rem] shadow-2xl border-2 border-gray-50 text-center">
+                            <div class="w-20 h-20 bg-black text-white rounded-3xl flex items-center justify-center text-3xl mx-auto mb-10"><i class="fa-solid fa-lock"></i></div>
+                            <h1 class="text-2xl font-black mb-10 uppercase tracking-widest">Painel Gestor</h1>
+                            <input type="password" id="admin-pass" class="input-field text-center mb-6" placeholder="Senha Mestra">
+                            <button id="admin-login-btn" class="w-full btn-primary bg-black">Autenticar</button>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('admin-login-btn').onclick = () => {
+                    if (document.getElementById('admin-pass').value === ADMIN_PASSWORD) {
+                        state.isAdminMode = true;
+                        router();
+                    } else alert("Senha Incorreta");
+                };
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="max-w-7xl mx-auto px-4 py-16">
+                    <div class="flex justify-between items-center mb-16">
+                        <h1 class="text-5xl font-black uppercase tracking-tighter">Gestão do Acervo</h1>
+                        <button onclick="window.logoutAdmin()" class="px-6 py-3 bg-gray-100 rounded-xl font-black uppercase text-[10px] hover:bg-red-50 hover:text-red-600 transition-all">Sair do Admin</button>
+                    </div>
+
+                    <div class="bg-white p-10 rounded-[4rem] shadow-2xl border-4 border-teal-500/10 mb-20">
+                        <h2 class="text-2xl font-black mb-10 uppercase tracking-widest border-l-8 border-teal-600 pl-6">Publicar Nova Obra</h2>
+                        <form id="upload-form" class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                            <div class="space-y-6">
+                                <div class="border-4 border-dashed rounded-[3rem] p-12 text-center relative hover:bg-teal-50 transition-all group">
+                                    <input type="file" id="book-file" accept=".pdf" class="absolute inset-0 opacity-0 cursor-pointer z-10" required>
+                                    <div class="space-y-4">
+                                        <i class="fa-solid fa-cloud-arrow-up text-5xl text-gray-300 group-hover:text-teal-600 transition-all"></i>
+                                        <p id="file-label" class="font-black text-gray-900 truncate px-4">Selecionar PDF</p>
+                                    </div>
+                                </div>
+                                <input type="text" id="up-title" placeholder="Título do Livro" required class="input-field">
+                                <input type="text" id="up-author" placeholder="Autor / Editora" required class="input-field">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <select id="up-genre" class="input-field appearance-none cursor-pointer">
+                                        ${GENRES.map(g => `<option value="${g}">${g}</option>`).join('')}
+                                    </select>
+                                    <button type="button" id="up-feat-btn" class="input-field border-2 border-gray-100 bg-white">Destaque: Não</button>
+                                </div>
+                            </div>
+                            <div class="space-y-6">
+                                <div class="flex justify-between items-center">
+                                    <label class="text-[10px] font-black uppercase tracking-[0.2em] ml-2">Resumo Literário</label>
+                                    <button type="button" id="up-ai-btn" class="bg-teal-50 text-teal-700 px-4 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-teal-100 transition-all"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i>IA Sinopse</button>
+                                </div>
+                                <textarea id="up-desc" rows="6" placeholder="Fale sobre a obra..." required class="input-field resize-none"></textarea>
+                                <button type="submit" id="up-submit" class="w-full btn-primary h-20 shadow-2xl shadow-teal-500/30">Publicar Obra</button>
+                                <div id="up-status" class="text-center font-black text-teal-600 uppercase text-[10px] tracking-widest h-4"></div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="bg-white rounded-[3rem] shadow-2xl overflow-hidden border-2 border-gray-100">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 border-b border-gray-100">
+                                <tr>
+                                    <th class="px-10 py-8 text-[10px] font-black uppercase text-gray-400">Obra</th>
+                                    <th class="px-10 py-8 text-[10px] font-black uppercase text-gray-400">Gênero</th>
+                                    <th class="px-10 py-8 text-right text-[10px] font-black uppercase text-gray-400">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50">
+                                ${state.books.map(b => `
+                                    <tr class="hover:bg-teal-50/30 transition-all">
+                                        <td class="px-10 py-8">
+                                            <div class="flex items-center gap-6">
+                                                <img src="${b.coverUrl}" class="w-12 h-16 object-cover rounded-xl shadow-lg">
+                                                <div><p class="font-black text-lg">${b.title}</p><p class="text-xs font-bold text-gray-400 uppercase">${b.author}</p></div>
+                                            </div>
+                                        </td>
+                                        <td class="px-10 py-8"><span class="bg-white px-4 py-2 rounded-full border border-teal-100 text-teal-700 text-[9px] font-black uppercase">${b.genre}</span></td>
+                                        <td class="px-10 py-8 text-right"><button onclick="window.deleteBook('${b.id}')" class="text-gray-300 hover:text-red-600 transition-all p-4"><i class="fa-solid fa-trash-can"></i></button></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            // Eventos Admin
+            let isFeat = false;
+            const fileInput = document.getElementById('book-file');
+            fileInput.onchange = (e) => {
+                const f = e.target.files[0];
+                if (f) {
+                    document.getElementById('file-label').textContent = f.name;
+                    if (!document.getElementById('up-title').value) document.getElementById('up-title').value = f.name.replace('.pdf','');
+                }
+            };
+
+            document.getElementById('up-feat-btn').onclick = (e) => {
+                isFeat = !isFeat;
+                e.target.textContent = isFeat ? 'Destaque: Sim' : 'Destaque: Não';
+                e.target.className = isFeat ? 'input-field border-2 border-teal-600 bg-teal-50 text-teal-600 font-black' : 'input-field border-2 border-gray-100 bg-white';
+            };
+
+            document.getElementById('up-ai-btn').onclick = async () => {
+                const t = document.getElementById('up-title').value;
+                if (!t) return alert("Introduza o título primeiro");
+                const btn = document.getElementById('up-ai-btn');
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Gerando...';
+                try {
+                    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+                    const res = await ai.models.generateContent({ model: 'gemini-3-flash-preview', contents: `Crie uma sinopse cativante de 2 parágrafos para o livro moçambicano "${t}".` });
+                    document.getElementById('up-desc').value = res.text;
+                } catch (err) { console.error(err); alert("IA Falhou"); }
+                btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles mr-2"></i>IA Sinopse';
+            };
+
+            document.getElementById('upload-form').onsubmit = async (e) => {
+                e.preventDefault();
+                const status = document.getElementById('up-status');
+                const btn = document.getElementById('up-submit');
+                const file = fileInput.files[0];
+                
+                try {
+                    btn.disabled = true;
+                    status.textContent = 'Enviando para o Storage...';
+                    const fileName = `${Date.now()}_${file.name}`;
+                    const { error: upErr } = await supabase.storage.from('library').upload(`books/${fileName}`, file);
+                    if (upErr) throw upErr;
+
+                    status.textContent = 'Registando obra...';
+                    const { data: urlData } = supabase.storage.from('library').getPublicUrl(`books/${fileName}`);
+                    
+                    const { error: dbErr } = await supabase.from('books').insert([{
+                        title: document.getElementById('up-title').value,
+                        author: document.getElementById('up-author').value,
+                        description: document.getElementById('up-desc').value,
+                        genre: document.getElementById('up-genre').value,
+                        cover_url: `https://picsum.photos/seed/${Math.random()}/400/600`,
+                        file_url: urlData.publicUrl,
+                        is_featured: isFeat
+                    }]);
+
+                    if (dbErr) throw dbErr;
+                    
+                    alert("Sucesso! Livro publicado.");
+                    await fetchBooks();
+                    router();
+                } catch (err) { alert("Erro: " + err.message); }
+                finally { btn.disabled = false; status.textContent = ''; }
+            };
+        }
+
+        // Funções Globais Auxiliares
+        window.logoutAdmin = () => { state.isAdminMode = false; router(); };
+        window.deleteBook = async (id) => {
+            if (confirm("Eliminar permanentemente?")) {
+                const { error } = await supabase.from('books').delete().eq('id', id);
+                if (!error) { await fetchBooks(); router(); }
+            }
+        };
+
+        window.openReader = (id) => {
+            const b = state.books.find(x => x.id == id);
+            const modal = document.getElementById('reader-modal');
+            const header = document.getElementById('modal-header-info');
+            const body = document.getElementById('modal-content-area');
+            
+            header.innerHTML = `
+                <img src="${b.coverUrl}" class="w-10 h-14 object-cover rounded shadow-md">
+                <div><h2 class="font-black text-black leading-none">${b.title}</h2><p class="text-[10px] font-black uppercase text-teal-600 mt-1">${b.author}</p></div>
+            `;
+            body.innerHTML = `<iframe src="${b.fileUrl}" class="w-full h-full border-none" title="Leitor Digital"></iframe>`;
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        };
+
+        window.closeReader = () => {
+            document.getElementById('reader-modal').classList.add('hidden');
+            document.getElementById('modal-content-area').innerHTML = '';
+            document.body.style.overflow = 'auto';
+        };
+
+        function bookCardHtml(b) {
+            return `
+                <div class="group bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+                    <div class="relative aspect-[2/3] overflow-hidden">
+                        <img src="${b.coverUrl}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                        <div class="absolute top-4 left-4"><span class="bg-white/90 backdrop-blur-md text-teal-700 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest shadow-lg">${b.genre}</span></div>
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                            <button onclick="window.openReader('${b.id}')" class="w-16 h-16 bg-white text-teal-600 rounded-full flex items-center justify-center shadow-2xl hover:bg-teal-50 transition-all"><i class="fa-solid fa-book-open text-2xl"></i></button>
+                        </div>
+                    </div>
+                    <div class="p-8 cursor-pointer" onclick="window.openReader('${b.id}')">
+                        <h3 class="font-black text-black text-xl line-clamp-2 leading-tight group-hover:text-teal-600 transition-colors">${b.title}</h3>
+                        <p class="text-xs font-bold text-gray-400 uppercase mt-2 tracking-widest">${b.author}</p>
+                        <p class="text-gray-500 text-sm mt-4 line-clamp-3 leading-relaxed font-medium italic opacity-70">${b.description}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        document.getElementById('mobile-menu-btn').onclick = () => document.getElementById('mobile-menu').classList.toggle('hidden');
+
+        init();
+    </script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>
